@@ -25,7 +25,7 @@ The main difference is we can run the model on the cluster.
 ### Installation of `sparklyr`
 ```{r}
 system('java -version') # the default version of java on this server matches
-install.packages("sparklyr") # install package
+#install.packages("sparklyr") # install package
 ```
 
 ### Install and connect to Apache Spark

@@ -101,6 +101,14 @@ fm_all <- formula("LeaveVote ~ .")
 - What do you find?
 
 ```{r eval = F}
+mod_tree <- tree(LeaveVote ~ ., data = data_train_prepped)
+
+base::plot(mod_tree)
+text(mod_tree)
+
+pred_test_tree <- predict(mod_tree, newdata = data_test_prepped, type = 'class')
+confusionMatrix(pred_test_tree, data_test_prepped$LeaveVote, positive = '1',
+                mode = "prec_recall")
 
 ```
 

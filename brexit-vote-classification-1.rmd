@@ -22,6 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
+#install.packages('caret', dependencies = TRUE)
 library(caret)
 library(glmnet)
 ```
@@ -65,8 +66,8 @@ data_test <- data_brexit %>% slice(-train_idx)
 prep <- preProcess(data_train %>% select(-LeaveVote), method = c("center", "scale"))
 prep
 
-data_train_preped <- predict(prep, data_train)
-data_test_preped <- predict(prep, data_test)
+data_train_prepped <- predict(prep, data_train)
+data_test_prepped <- predict(prep, data_test)
 
 ```
 
@@ -100,9 +101,9 @@ You can use these formulas in a way like:
 
 ```{r eval = F}
 # for model
-glm(fm_socdem, data = data_train_preped, family = "binomial")
+glm(fm_socdem, data = data_train_prepped, family = "binomial")
 # for data extraction
-model.matrix(fm_socdem, data = data_train_preped) %>% head()
+model.matrix(fm_socdem, data = data_train_prepped) %>% head()
 
 ```
 
@@ -110,16 +111,116 @@ model.matrix(fm_socdem, data = data_train_preped) %>% head()
 
 Run a few models, and evaluate them. Which one has the better predictive performance?
 
-```{r}
+```{r, socdem}
+glm_socdem <- glm(fm_socdem, data = data_train_prepped, family = "binomial")
+# for data extraction
+model.matrix(fm_socdem, data = data_train_prepped) %>% head()
+
+soc_dem_pred_train_logit <- predict(glm_socdem, type = "response")
+soc_dem_pred_train_logit <- as.numeric(soc_dem_pred_train_logit > .5) %>% factor()
+
+soc_dem_pred_test_logit <- predict(glm_socdem, newdata = data_test_prepped, type = "response")
+soc_dem_pred_test_logit <- as.numeric(soc_dem_pred_test_logit > .5) %>% factor()
+
+caret::confusionMatrix(soc_dem_pred_train_logit, data_train_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+caret::confusionMatrix(soc_dem_pred_test_logit, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+
 
 ```
+
+```{r, identiy}
+glm_identity <- glm(fm_identity, data = data_train_prepped, family = "binomial")
+# for data extraction
+model.matrix(glm_identity, data = data_train_prepped) %>% head()
+
+identity_pred_train_logit <- predict(glm_identity, type = "response")
+identity_pred_train_logit <- as.numeric(identity_pred_train_logit > .5) %>% factor()
+
+identity_pred_test_logit <- predict(glm_identity, newdata = data_test_prepped, type = "response")
+identity_pred_test_logit <- as.numeric(identity_pred_test_logit > .5) %>% factor()
+
+caret::confusionMatrix(identity_pred_train_logit, data_train_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+caret::confusionMatrix(identity_pred_test_logit, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+```
+
+```{r, antielite}
+glm_antielite <- glm(fm_antielite, data = data_train_prepped, family = "binomial")
+# for data extraction
+model.matrix(fm_antielite, data = data_train_prepped) %>% head()
+
+antielite_pred_train_logit <- predict(glm_antielite, type = "response")
+antielite_pred_train_logit <- as.numeric(antielite_pred_train_logit > .5) %>% factor()
+
+antielite_pred_test_logit <- predict(glm_antielite, newdata = data_test_prepped, type = "response")
+antielite_pred_test_logit <- as.numeric(antielite_pred_test_logit > .5) %>% factor()
+
+caret::confusionMatrix(antielite_pred_train_logit, data_train_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+caret::confusionMatrix(antielite_pred_test_logit, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+
+
+```
+
+```{r, fm_attitudes}
+glm_attitudes <- glm(fm_attitudes, data = data_train_prepped, family = "binomial")
+# for data extraction
+model.matrix(fm_attitudes, data = data_train_prepped) %>% head()
+
+attitudes_pred_train_logit <- predict(glm_attitudes, type = "response")
+attitudes_pred_train_logit <- as.numeric(attitudes_pred_train_logit > .5) %>% factor()
+
+attitudes_pred_test_logit <- predict(glm_attitudes, newdata = data_test_prepped, type = "response")
+attitudes_pred_test_logit <- as.numeric(attitudes_pred_test_logit > .5) %>% factor()
+
+caret::confusionMatrix(attitudes_pred_train_logit, data_train_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+caret::confusionMatrix(attitudes_pred_test_logit, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+```
+
+```{r, all}
+glm_all <- glm(fm_all, data = data_train_prepped, family = "binomial")
+# for data extraction
+model.matrix(fm_all, data = data_train_prepped) %>% head()
+
+all_pred_train_logit <- predict(glm_all, type = "response")
+all_pred_train_logit <- as.numeric(all_pred_train_logit > .5) %>% factor()
+
+all_pred_test_logit <- predict(glm_all, newdata = data_test_prepped, type = "response")
+all_pred_test_logit <- as.numeric(all_pred_test_logit > .5) %>% factor()
+
+caret::confusionMatrix(all_pred_train_logit, data_train_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+caret::confusionMatrix(all_pred_test_logit, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+
+```
+```{r}
+caret::confusionMatrix(soc_dem_pred_test_logit, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+caret::confusionMatrix(identity_pred_test_logit, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+caret::confusionMatrix(antielite_pred_test_logit, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+caret::confusionMatrix(attitudes_pred_test_logit, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+caret::confusionMatrix(all_pred_test_logit, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+```
+F1 for attitudes is 0.9133 
+f1 for all is 0.9238
+
+So, all in all pretty good predictions.
 
 ## Linear SVM
 
 - Train a linear SVM model, check the predictive performance. How does it compare to the logistic regression?
 
 ```{r}
+library(kernlab)
 
+kernfit_linear <- ksvm(fm_all,
+                       data = data_train_prepped,
+                       type = "C-svc",
+                       kernel = "vanilladot",
+                       C = 1)
+#the plot function does not work
+#kernlab::plot(kernfit_linear, data = data_train_prepped)
+
+pred_test_svm_linear <- predict(kernfit_linear, newdata = data_test_prepped)
+confusionMatrix(pred_test_svm_linear, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+
+#Linear fit is not better then the logistic regression.
 ```
 
 
@@ -128,6 +229,71 @@ Run a few models, and evaluate them. Which one has the better predictive perform
 - Train non-linear SVM. How is the performance? Any improvement?
 
 ```{r cache=T}
+library(kernlab)
+
+kernfit_linear <- ksvm(fm_all,
+                       data = data_train_prepped,
+                       type = "C-svc",
+                       kernel = "vanilladot",
+                       C = 1)
+#the plot function does not work
+#kernlab::plot(kernfit_linear, data = data_train_prepped)
+
+tr <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
+mod_svm_linear <- train(LeaveVote ~., data = data_train_prepped,
+                        method = "svmLinear", trControl = tr,
+                        tuneGrid = data.frame(C = c(0.1,0.25,1,10)))
+
+mod_svm_linear
+
+pred_test_svm_linear <- predict(mod_svm_linear, newdata = data_test_prepped)
+confusionMatrix(pred_test_svm_linear, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+
+#Linear fit is better then the logistic regression.
+#but only slighter
+
+library(kernlab)
+kernfit_poly <- ksvm(fm_all,
+                       data = data_train_prepped,
+                       type = "C-svc",
+                       kernel = "polydot",
+                       C = 1,
+                     kpar = list(degree = 3, scale = .1))
+
+#the plot function does not work
+#kernlab::plot(kernfit_poly, data = data_train_prepped)
+
+tr <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
+mod_svm_poly <- train(LeaveVote ~., data = data_train_prepped,
+                        method = "svmPoly", trControl = tr)
+
+mod_svm_poly
+
+pred_test_svm_poly <- predict(mod_svm_poly, newdata = data_test_prepped)
+confusionMatrix(pred_test_svm_poly, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+
+#Poly fit is better then the logistic regression.
+
+#Radial
+kernfit_rad <- ksvm(fm_all,
+                       data = data_train_prepped,
+                       type = "C-svc",
+                       kernel = "rbfdot",
+                       C = 1)
+
+#the plot function does not work
+#kernlab::plot(kernfit_poly, data = data_train_prepped)
+
+tr <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
+mod_svm_radial <- train(LeaveVote ~., data = data_train_prepped,
+                        method = "svmRadial", trControl = tr)
+
+mod_svm_radial
+
+pred_test_svm_radial <- predict(mod_svm_radial, newdata = data_test_prepped)
+confusionMatrix(pred_test_svm_radial, data_test_prepped$LeaveVote, positive = "1", mode = "prec_recall")
+
+#radial fit is better then the logistic regression but poly is the best. 
 
 
 ```
@@ -140,6 +306,33 @@ Run a few models, and evaluate them. Which one has the better predictive perform
   - Which inupts survived?
 
 ```{r}
+brexit_train_X <- data_train_preped %>%
+  select(-LeaveVote) %>% as.matrix()
+brexit_train_Y <- data_train_preped$LeaveVote
+
+brexit_test_X <- data_test_preped %>%
+  select(-LeaveVote) %>% as.matrix()
+brexit_test_Y <- data_test_preped$LeaveVote
+
+
+brexit_lasso_cv <- cv.glmnet(brexit_train_X,
+                             brexit_train_Y,
+                             alpha = 1,
+                             type.measure = "mse",
+                             family = "binomial")
+
+plot(brexit_lasso_cv)
+brexit_lasso_cv$lambda.1se
+brexit_lasso_cv$lambda.min
+
+
+plot(brexit_lasso_cv$glmnet.fit,
+     xvar = "lambda")
+     abline(v = log(brexit_lasso_cv$lambda.1se))
+
+coef(brexit_lasso_cv)
+
+#only the attitudes survive. 
 
 ```
 
